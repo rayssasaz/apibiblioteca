@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/exemplares/**").hasRole("BIBLIOTECARIO")
                         .requestMatchers(HttpMethod.POST, "/api/emprestimos").hasRole("BIBLIOTECARIO")
                         .requestMatchers(HttpMethod.PATCH, "/api/emprestimos/*/devolucao").hasRole("BIBLIOTECARIO")
-                        .requestMatchers(HttpMethod.GET, "/api/emprestimos").hasRole("BIBLIOTECARIO")
+                        .requestMatchers(HttpMethod.GET, "/api/emprestimos", "/api/multas").hasRole("BIBLIOTECARIO")
                         .requestMatchers(HttpMethod.PATCH, "/api/multas/*/pagar").hasRole("BIBLIOTECARIO")
                         .requestMatchers(HttpMethod.POST, "/api/reservas/*/retirar", "/api/reservas/processar-expiradas").hasRole("BIBLIOTECARIO")
                         .requestMatchers(HttpMethod.GET, "/api/reservas/livro/*/fila").hasRole("BIBLIOTECARIO")
