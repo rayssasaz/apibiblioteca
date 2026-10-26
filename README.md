@@ -92,13 +92,13 @@ A API estará disponível em: **`http://localhost:8080`**
 
 ## 🔑 Credenciais Pré-Cadastradas (`DataInitializer`)
 
-Ao iniciar a aplicação com o banco vazio, o componente `DataInitializer` popula automaticamente **3 usuários**, **3 livros clássicos de computação** e **5 exemplares físicos**:
+Ao iniciar a aplicação com o banco vazio, o componente `DataInitializer` popula automaticamente **3 usuários** iniciais:
 
-| Perfil (`Role`) | E-mail | Senha | Permissões Principais |
-| :--- | :--- | :--- | :--- |
-| **`BIBLIOTECARIO`** | `bibliotecario@biblioteca.edu.br` | `senha1234` | Gestão completa do acervo, exemplares, registro de empréstimos/devoluções, baixa de multas e consulta geral. |
-| **`LEITOR`** | `leitor@biblioteca.edu.br` | `senha1234` | Consulta ao acervo, renovação dos próprios empréstimos, solicitação/cancelamento de reservas e consulta às próprias multas. |
-| **`LEITOR`** | `maria@biblioteca.edu.br` | `senha1234` | Segunda conta de leitor para testar cenários de disputa de exemplares e fila FIFO de reservas. |
+| ID | Perfil (`Role`) | E-mail | Senha | Permissões Principais |
+| :---: | :--- | :--- | :--- | :--- |
+| `1` | **`BIBLIOTECARIO`** | `bibliotecario@biblioteca.edu.br` | `senha1234` | Gestão completa do acervo, exemplares, registro de empréstimos/devoluções, baixa de multas, fila de reservas e relatórios gerenciais. |
+| `2` | **`LEITOR`** | `leitor@biblioteca.edu.br` | `senha1234` | Consulta ao acervo, renovação dos próprios empréstimos, solicitação/cancelamento de reservas e consulta às próprias multas. |
+| `3` | **`LEITOR`** | `maria@biblioteca.edu.br` | `senha1234` | Segunda conta de leitor para testar cenários de disputa de exemplares e fila FIFO de reservas. |
 
 ---
 
@@ -110,7 +110,7 @@ Com a aplicação em execução, acesse a interface do **Swagger UI**:
 *(Especificação JSON OpenAPI disponível em: `http://localhost:8080/v3/api-docs`)*
 
 ### Como se autenticar no Swagger UI:
-1. Expanda o endpoint **`POST /auth/login`** na seção **Autenticação**.
+1. Expanda o endpoint **`POST /api/auth/login`** na seção **1. Autenticação**.
 2. Envie o JSON com uma das credenciais acima, por exemplo:
    ```json
    {
@@ -128,34 +128,35 @@ Com a aplicação em execução, acesse a interface do **Swagger UI**:
 
 | RF | Método | Endpoint | Descrição | Acesso / Role |
 | :---: | :---: | :--- | :--- | :---: |
-| **RF01** | `POST` | `/usuarios` | Cadastra um novo usuário (`LEITOR` ou `BIBLIOTECARIO`) | Público |
-| **RF02** | `POST` | `/auth/login` | Autentica usuário e retorna o token JWT assinado | Público |
-| **RF03** | `GET` | `/usuarios` | Lista todos os usuários cadastrados | `BIBLIOTECARIO` |
-| **RF03** | `GET` | `/usuarios/{id}` | Busca dados do usuário por ID | `BIBLIOTECARIO` ou Próprio Usuário |
-| **RF03** | `GET` | `/usuarios/me` | Retorna os dados do usuário autenticado pelo token | Autenticado |
-| **RF04** | `POST` | `/livros` | Cadastra um novo livro no acervo (ISBN único) | `BIBLIOTECARIO` |
-| **RF04** | `PUT` | `/livros/{id}` | Atualiza dados catalográficos de um livro | `BIBLIOTECARIO` |
-| **RF04** | `DELETE` | `/livros/{id}` | Remove livro (bloqueado se houver exemplares emprestados) | `BIBLIOTECARIO` |
-| **RF05** | `GET` | `/livros` | Lista e busca livros com filtros opcionais (`termo`, `categoria`, `anoPublicacao`) e contagem de disponibilidade | Público |
-| **RF05** | `GET` | `/livros/{id}` | Detalha um livro específico e sua disponibilidade | Público |
-| **RF06** | `POST` | `/livros/{livroId}/exemplares` | Adiciona um novo exemplar físico ao livro (`codigoPatrimonio` único) | `BIBLIOTECARIO` |
-| **RF06** | `GET` | `/livros/{livroId}/exemplares` | Lista todos os exemplares físicos de um livro | Público |
-| **RF06** | `GET` | `/exemplares/{id}` | Busca um exemplar específico pelo ID | Público |
-| **RF06** | `DELETE` | `/exemplares/{id}` | Remove um exemplar físico (se não estiver emprestado) | `BIBLIOTECARIO` |
-| **RF07** | `PATCH` | `/exemplares/{id}/status` | Altera status do exemplar (`DISPONIVEL` / `INDISPONIVEL`) com justificativa | `BIBLIOTECARIO` |
-| **RF08** | `POST` | `/emprestimos` | Registra empréstimo de exemplar para leitor (prazo de 14 dias) | `BIBLIOTECARIO` |
-| **RF09** | `PATCH` | `/emprestimos/{id}/devolucao` | Registra devolução, calcula multa por atraso e aciona fila de reservas | `BIBLIOTECARIO` |
-| **RF10** | `PATCH` | `/emprestimos/{id}/renovacao` | Renova empréstimo por +7 dias (máximo 1 vez, sem atraso/multa/reserva) | `BIBLIOTECARIO` ou Próprio `LEITOR` |
-| **RF11** | `GET` | `/emprestimos` | Lista empréstimos (todos para Bibliotecário; apenas próprios para Leitor) | Autenticado |
-| **RF11** | `GET` | `/emprestimos/{id}` | Detalha um empréstimo específico | `BIBLIOTECARIO` ou Próprio `LEITOR` |
-| **RF12** | `GET` | `/multas` | Lista multas com filtro opcional `?status=PENDENTE\|PAGA` | Autenticado |
-| **RF12** | `GET` | `/multas/{id}` | Detalha uma multa específica | `BIBLIOTECARIO` ou Próprio `LEITOR` |
-| **RF13** | `PATCH` | `/multas/{id}/pagamento` | Registra pagamento de multa pendente e desbloqueia o leitor | `BIBLIOTECARIO` |
-| **RF14** | `POST` | `/reservas` | Cria reserva na fila FIFO quando não há exemplares disponíveis | Autenticado (`LEITOR` / `BIBLIOTECARIO`) |
-| **RF15** | `PATCH` | `/reservas/{id}/cancelamento` | Cancela reserva ativa (se tinha exemplar separado, repassa ao próximo da fila) | `BIBLIOTECARIO` ou Próprio `LEITOR` |
-| **RF16** | `GET` | `/reservas` | Lista reservas (todas para Bibliotecário; próprias para Leitor) | Autenticado |
-| **RF16** | `GET` | `/livros/{livroId}/reservas` | Consulta a fila ativa de reservas de um livro por ordem de chegada | Autenticado |
-| **RF17** | `POST` | `/reservas/processar-expiradas` | Expira reservas não retiradas em 3 dias e realoca o exemplar | `BIBLIOTECARIO` (e rotina `@Scheduled`) |
+| **RF01** | `POST` | `/api/auth/register` | Cadastra um novo usuário com perfil `LEITOR` | Público |
+| **RF02** | `POST` | `/api/auth/login` | Autentica usuário (`LEITOR` ou `BIBLIOTECARIO`) e retorna o token JWT | Público |
+| **RF03** | `POST` | `/api/livros` | Cadastra um novo livro no acervo (ISBN único) | `BIBLIOTECARIO` |
+| **RF03** | `PUT` | `/api/livros/{id}` | Atualiza dados catalográficos de um livro existente | `BIBLIOTECARIO` |
+| **RF03** | `DELETE` | `/api/livros/{id}` | Remove livro do acervo (se não houver exemplares emprestados/reservas) | `BIBLIOTECARIO` |
+| **RF04** | `POST` | `/api/livros/{livroId}/exemplares` | Adiciona um novo exemplar físico ao livro (`codigoPatrimonio` único) | `BIBLIOTECARIO` |
+| **RF04** | `GET` | `/api/livros/{livroId}/exemplares` | Lista todos os exemplares físicos de um livro | `BIBLIOTECARIO` |
+| **RF04** | `GET` | `/api/exemplares/{id}` | Busca detalhes e status de um exemplar pelo ID | `BIBLIOTECARIO` |
+| **RF04** | `PATCH` | `/api/exemplares/{id}/indisponibilizar` | Marca exemplar como `INDISPONIVEL` informando o motivo | `BIBLIOTECARIO` |
+| **RF04** | `PATCH` | `/api/exemplares/{id}/disponibilizar` | Reativa exemplar `INDISPONIVEL` de volta para `DISPONIVEL` | `BIBLIOTECARIO` |
+| **RF05** | `GET` | `/api/livros` | Busca paginada de livros com filtros (`titulo`, `autor`, `categoria`) e disponibilidade | Público |
+| **RF05** | `GET` | `/api/livros/{id}` | Busca detalhes de um livro por ID e sua quantidade disponível | Público |
+| **RF06** | `POST` | `/api/emprestimos` | Registra empréstimo de exemplar disponível para leitor (prazo de 14 dias) | `BIBLIOTECARIO` |
+| **RF07** | `PATCH` | `/api/emprestimos/{id}/devolucao` | Registra devolução, calcula multa se houver atraso e separa para fila de reserva | `BIBLIOTECARIO` |
+| **RF08** | `PATCH` | `/api/emprestimos/{id}/renovar` | Renova próprio empréstimo ativo por +7 dias (máximo 1 vez) | `LEITOR` |
+| **RF09** | `PATCH` | `/api/multas/{id}/pagar` | Registra pagamento de multa pendente e desbloqueia o leitor | `BIBLIOTECARIO` |
+| **RF10** | `GET` | `/api/emprestimos/meus` | Lista todos os empréstimos do próprio leitor autenticado | `LEITOR` |
+| **RF10** | `GET` | `/api/emprestimos` | Lista empréstimos com filtros (`leitorId`, `status`, `atrasados`) | `BIBLIOTECARIO` |
+| **RF10** | `GET` | `/api/multas/minhas` | Lista as multas do próprio leitor autenticado (filtro opcional `status`) | `LEITOR` |
+| **RF10** | `GET` | `/api/multas` | Lista multas de qualquer leitor com filtros (`leitorId`, `status`) | `BIBLIOTECARIO` |
+| **RF11** | `POST` | `/api/reservas` | Solicita reserva na fila FIFO quando o livro não possui exemplares disponíveis | `LEITOR` |
+| **RF12** | `POST` | `/api/reservas/{id}/retirar` | Registra retirada de exemplar separado convertendo a reserva em empréstimo | `BIBLIOTECARIO` |
+| **RF13** | `PATCH` | `/api/reservas/{id}/cancelar` | Cancela reserva ativa e repassa exemplar separado ao próximo da fila | `LEITOR` / `BIBLIOTECARIO` |
+| **RF14** | `GET` | `/api/reservas/minhas` | Lista todas as reservas do próprio leitor autenticado | `LEITOR` |
+| **RF14** | `GET` | `/api/reservas/livro/{livroId}/fila` | Consulta a fila ordenada (FIFO) de reservas ativas de um livro | `BIBLIOTECARIO` |
+| **RF14** | `POST` | `/api/reservas/processar-expiradas` | Expira reservas não retiradas em 3 dias e realoca o exemplar | `BIBLIOTECARIO` |
+| **RF15** | `GET` | `/api/relatorios/livros-mais-emprestados` | Relatório dos 10 livros mais emprestados no período (`inicio` a `fim`) | `BIBLIOTECARIO` |
+| **RF16** | `GET` | `/api/relatorios/emprestimos-atrasados` | Relatório de empréstimos em atraso ordenados pelo maior atraso | `BIBLIOTECARIO` |
+| **RF17** | `GET` | `/api/relatorios/multas-pendentes-por-leitor` | Relatório do total acumulado de multas pendentes agrupado por leitor | `BIBLIOTECARIO` |
 
 ---
 
@@ -181,10 +182,10 @@ Com a aplicação em execução, acesse a interface do **Swagger UI**:
 
 ## 📐 Diagramas UML
 
-Os diagramas completos (em formato Mermaid e PlantUML) e suas matrizes de rastreabilidade encontram-se no diretório [`docs/`](./docs/):
+Os diagramas completos  [`docs/`](./docs/):
 
-- 📄 **[Diagrama de Casos de Uso (`docs/diagrama-casos-de-uso.md`)](./docs/diagrama-casos-de-uso.md)**
-- 📄 **[Diagrama de Classes (`docs/diagrama-classes.md`)](./docs/diagrama-classes.md)**
+- 📄 **[Diagrama de Casos de Uso (`docs/diagrama casos de uso.png`)](./docs/diagrama%20casos%20de%20uso.png)**
+- 📄 **[Diagrama de Classes (`docs/diagrama de classes.png`)](./docs/diagrama%20de%20classes.png)**
 
 ### Visão Geral — Diagrama de Classes de Domínio
 

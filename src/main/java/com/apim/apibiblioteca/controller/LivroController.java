@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -62,7 +63,7 @@ public class LivroController {
             @RequestParam(required = false) String titulo,
             @RequestParam(required = false) String autor,
             @RequestParam(required = false) String categoria,
-            @PageableDefault(size = 10, sort = "titulo") Pageable pageable) {
+            @ParameterObject @PageableDefault(size = 10, sort = "titulo") Pageable pageable) {
         return ResponseEntity.ok(livroService.buscarLivros(titulo, autor, categoria, pageable));
     }
 
